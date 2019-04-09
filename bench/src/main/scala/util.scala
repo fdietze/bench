@@ -75,6 +75,7 @@ package object util {
     val namePad = (comparison.name.length +: comparison.benchmarks.map(_.name.length)).max
     val durationForSingleRun = (duration / comparison.benchmarks.size / (warmup + 1)) / sizes.size
     println("Duration for single run: " + durationForSingleRun.toMillis + "ms")
+    println("(result durations in nanoseconds)")
     println(s"${comparison.name.replace(" ", "_").padTo(namePad, " ").mkString}${sizes.map(s => s"%${numPad}d" format s).mkString}")
     val benchmarkDuration = duration / comparison.benchmarks.size
     comparison.name -> comparison.benchmarks.map{ benchmark =>
