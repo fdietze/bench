@@ -30,8 +30,8 @@ package object util {
 
   @inline def now: Long = System.nanoTime()
 
-  def runFor[T](duration: Duration)(code: => T): Duration = {
-    val durationNs = duration.toNanos
+  def runFor[T](minDuration: Duration)(code: => T): Duration = {
+    val durationNs = minDuration.toNanos
     val start = now
 
     @inline def passed = now - start
@@ -48,14 +48,18 @@ package object util {
     avg
   }
 
-  def runBenchmark(benchmark: BenchmarkLike[_], size: Int, iterations: Long, duration: Duration): Duration = {
-    val onlyInit: Duration = runFor(duration / 2) {
+  def runBenchmark(benchmark: BenchmarkLike[_], size: Int, iterations: Long, minDuration: Duration): Duration = {
+    val avgOnlyInit: Duration = runFor(minDuration / 2) {
       benchmark.init(size)
     }
-    val initAndCode: Duration = runFor(duration / 2) {
-      benchmark.run(size, iterations)
-    }
-    initAndCode - onlyInit
+    val avgInitAndCode: Duration = runFor(minDuration / 2) {
+      benchmark.runWithInit(size, iterations)
+    } / iterations
+    val avgOnlyCode = avgInitAndCode - avgOnlyInit
+    // println(s"avgOnlyInit:    $avgOnlyInit")
+    // println(s"avgInitAndCode: $avgInitAndCode")
+    // println(s"avgOnlyCode:    $avgOnlyCode")
+    avgOnlyCode
   }
 
   val defaultWarmup = 2
@@ -63,10 +67,13 @@ package object util {
     val seriesDuration = duration / (warmup + 1) // keep only one result
     def runSeries = {
       sizes.map { size =>
-        size -> runBenchmark(benchmark, size, iterations, seriesDuration / sizes.size)
+        // println(s"size: $size")
+        size -> runBenchmark(benchmark, size, iterations, minDuration = seriesDuration / sizes.size)
       }
     }
+    // println("warmup...")
     loop(warmup) { runSeries } // drop results for warmup
+    // println("real run")
     runSeries // only take one final result
   }
 

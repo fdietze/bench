@@ -12,8 +12,12 @@ object SleepBenchmarks {
     //     Thread.sleep(size)
     //   }
     // ),
-    BenchmarkWithoutInit(
+    Benchmark[Int](
       "runFor",
+      { size =>
+        runFor((size*2) milliseconds){ () }
+        size
+      },
       { (size) =>
         runFor(size milliseconds){
           ()
