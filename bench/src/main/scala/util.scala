@@ -70,9 +70,9 @@ package object util {
     runSeries // only take one final result
   }
 
-  val namePad = 20
   val numPad = 15
   def runComparison(comparison: Comparison, sizes: Seq[Int], iterations: Long, duration: Duration, warmup: Int = defaultWarmup):(String,Seq[(String,Seq[(Int,Duration)])]) = {
+    val namePad = (comparison.name.length +: comparison.benchmarks.map(_.name.length)).max
     val durationForSingleRun = (duration / comparison.benchmarks.size / (warmup + 1)) / sizes.size
     println("Duration for single run: " + durationForSingleRun.toMillis + "ms")
     println(s"${comparison.name.replace(" ", "_").padTo(namePad, " ").mkString}${sizes.map(s => s"%${numPad}d" format s).mkString}")
