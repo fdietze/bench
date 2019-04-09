@@ -5,7 +5,8 @@ import bench.util._
 
 object Main {
   def main(args: Array[String]): Unit = {
-    runComparison(CollectionBenchmarks.linearScan, expRange(1000), 1000, 30 seconds)
+    runComparison(SleepBenchmarks.linearScan, List(1, 10, 100), iterations = 10, 60 seconds)
+    runComparison(CollectionBenchmarks.linearScan, expRange(1000), iterations = 1000, 30 seconds)
 
     ()
   }
