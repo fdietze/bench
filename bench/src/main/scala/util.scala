@@ -42,7 +42,7 @@ package object util {
       count += 1
     }
     val end = now
-    if(count <= 10) println(s"WARNING: only $count iterations done. Give me more time.")
+    if(count <= 10) println(s"WARNING: only ran $count times. Give me more time.")
     val total = end - start
     val avg = Duration.fromNanos(total.toDouble / count)
     avg
@@ -74,7 +74,9 @@ package object util {
   def runComparison(comparison: Comparison, sizes: Seq[Int], iterations: Long, duration: Duration, warmup: Int = defaultWarmup):(String,Seq[(String,Seq[(Int,Duration)])]) = {
     val namePad = (comparison.name.length +: comparison.benchmarks.map(_.name.length)).max
     val durationForSingleRun = (duration / comparison.benchmarks.size / (warmup + 1)) / sizes.size
-    println("Duration for single run: " + durationForSingleRun.toMillis + "ms")
+    println("Duration total:        " + duration.toMillis + "ms")
+    println("Duration per run:      " + durationForSingleRun.toMillis + "ms")
+    println("Iterations per run:    " + iterations)
     println("(result durations in nanoseconds)")
     println(s"${comparison.name.replace(" ", "_").padTo(namePad, " ").mkString}${sizes.map(s => s"%${numPad}d" format s).mkString}")
     val benchmarkDuration = duration / comparison.benchmarks.size
