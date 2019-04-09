@@ -62,6 +62,7 @@ lazy val example = crossProject(JSPlatform, JVMPlatform).crossType(CrossType.Pur
   .dependsOn(bench)
   .settings(sharedSettings)
   .jsSettings(
+    scalaJSStage in Global := FullOptStage,
     scalaJSUseMainModuleInitializer := true
   )
 
