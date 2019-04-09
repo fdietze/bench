@@ -65,3 +65,5 @@ lazy val example = crossProject(JSPlatform, JVMPlatform).crossType(CrossType.Pur
     scalaJSUseMainModuleInitializer := true
   )
 
+// ctrl+c does not quit
+cancelable in Global := true
