@@ -72,18 +72,21 @@ package object util {
 
   val numPad = 15
   def runComparison(comparison: Comparison, sizes: Seq[Int], iterations: Long, duration: Duration, warmup: Int = defaultWarmup):(String,Seq[(String,Seq[(Int,Duration)])]) = {
-    val namePad = (comparison.name.length +: comparison.benchmarks.map(_.name.length)).max
+    val namePad = comparison.benchmarks.map(_.name.length).max
     val durationForSingleRun = (duration / comparison.benchmarks.size / (warmup + 1)) / sizes.size
+    println("Comparison Benchmark:  " + comparison.name)
     println("Duration total:        " + duration.toMillis + "ms")
     println("Duration per run:      " + durationForSingleRun.toMillis + "ms")
     println("Iterations per run:    " + iterations)
     println("(result durations in nanoseconds)")
-    println(s"${comparison.name.replace(" ", "_").padTo(namePad, " ").mkString}${sizes.map(s => s"%${numPad}d" format s).mkString}")
+    println(s"${" " * namePad}${sizes.map(s => s"%${numPad}d" format s).mkString}")
     val benchmarkDuration = duration / comparison.benchmarks.size
-    comparison.name -> comparison.benchmarks.map{ benchmark =>
+    val result = comparison.name -> comparison.benchmarks.map{ benchmark =>
       val seriesResult = benchmarkSeries(benchmark, sizes, iterations, benchmarkDuration, warmup)
       println(benchmark.name.replace(" ", "_").padTo(namePad, " ").mkString + seriesResult.map{ case (_, duration) => s"%${numPad}d" format duration.toNanos}.mkString)
       benchmark.name -> seriesResult
     }
+    println()
+    result
   }
 }
