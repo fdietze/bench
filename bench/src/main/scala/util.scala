@@ -48,7 +48,7 @@ package object util {
     avg
   }
 
-  def runBenchmark(benchmark: Benchmark[_], size: Int, iterations: Long, duration: Duration): Duration = {
+  def runBenchmark(benchmark: BenchmarkLike[_], size: Int, iterations: Long, duration: Duration): Duration = {
     val onlyInit: Duration = runFor(duration / 2) {
       benchmark.init(size)
     }
@@ -59,7 +59,7 @@ package object util {
   }
 
   val defaultWarmup = 2
-  def benchmarkSeries(benchmark: Benchmark[_], sizes: Seq[Int], iterations: Long, duration: Duration, warmup: Int = defaultWarmup):Seq[(Int,Duration)] = {
+  def benchmarkSeries(benchmark: BenchmarkLike[_], sizes: Seq[Int], iterations: Long, duration: Duration, warmup: Int = defaultWarmup):Seq[(Int,Duration)] = {
     val seriesDuration = duration / (warmup + 1) // keep only one result
     def runSeries = {
       sizes.map { size =>
