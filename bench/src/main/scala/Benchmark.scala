@@ -6,7 +6,7 @@ import util._
 sealed trait BenchmarkLike[T] {
   def name: String
   def init: Int => T // TODO: remove init from trait
-  def runWithInit(size: Int, iterations: Long)
+  def runWithInit(size: Int, iterations: Long): Unit
 }
 
 case class BenchmarkWithoutInit(name: String, code: (Int) => Any) extends BenchmarkLike[Unit] {
