@@ -15,11 +15,11 @@ object SleepBenchmarks {
     Benchmark[Int](
       "runFor",
       { size =>
-        runFor((size*2) milliseconds){ () }
+        runFor((size*2) milliseconds, size){ () }
         size
       },
       { (size) =>
-        runFor(size milliseconds){
+        runFor(size milliseconds, size){
           ()
         }
       }
