@@ -5,7 +5,7 @@ import scala.concurrent.duration._
 package object util {
   @inline def rInt: Int = scala.util.Random.nextInt
   @inline def rDouble: Double = scala.util.Random.nextDouble
-  @inline def loop[T](n: Long)(code: => T): T = {
+  @inline def repeatCode[T](n: Long)(code: => T): T = {
     var last: T = code
     var i = 1
     while (i < n) {
@@ -72,7 +72,7 @@ package object util {
       }
     }
     // println("warmup...")
-    loop(warmup) { runSeries } // drop results for warmup
+    repeatCode(warmup) { runSeries } // drop results for warmup
     // println("real run")
     runSeries // only take one final result
   }
