@@ -53,7 +53,7 @@ package object util {
         // println(s"size: $size")
         val (total, count) = benchmark.runFor(size, minDuration = seriesDuration / sizes.size)
         if (count <= 10) println(s"WARNING: only ran $count times for size $size. Give me more time.")
-        val avg = total / count
+        val avg = (total / count).max(1 nanoseconds)
         size -> avg
       }
     }
