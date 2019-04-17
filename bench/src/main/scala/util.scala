@@ -28,9 +28,8 @@ package object util {
     List.tabulate[Int]((Math.log(max) / Math.log(base)).ceil.toInt + 1)(i => Math.pow(base, i).toInt)
   }
 
-  @inline def now: Long = System.nanoTime()
-
-  def runFor[T](minDuration: Duration, size: Int)(code: => T): Duration = {
+  def repeatCodeFor[T](minDuration: Duration)(code: => T): (Duration, Long) = {
+    @inline def now: Long = System.nanoTime()
     val durationNs = minDuration.toNanos
     val start = now
 
@@ -42,33 +41,20 @@ package object util {
       count += 1
     }
     val end = now
-    if (count <= 10) println(s"WARNING: only ran $count times for size $size. Give me more time.")
     val total = end - start
-    val avg = Duration.fromNanos(total.toDouble / count)
-    avg
-  }
-
-  def runBenchmark(benchmark: BenchmarkLike[_], size: Int, iterations: Long, minDuration: Duration): Duration = {
-    val avgOnlyInit: Duration = runFor(minDuration / 2, size) {
-      benchmark.init(size)
-    }
-    val avgInitAndCode: Duration = runFor(minDuration / 2, size) {
-      benchmark.runWithInit(size, iterations)
-    } / iterations
-    val avgOnlyCode = avgInitAndCode - avgOnlyInit
-    // println(s"avgOnlyInit:    $avgOnlyInit")
-    // println(s"avgInitAndCode: $avgInitAndCode")
-    // println(s"avgOnlyCode:    $avgOnlyCode")
-    avgOnlyCode
+    (Duration.fromNanos(total), count)
   }
 
   val defaultWarmup = 2
-  def benchmarkSeries(benchmark: BenchmarkLike[_], sizes: Seq[Int], iterations: Long, duration: Duration, warmup: Int = defaultWarmup): Seq[(Int, Duration)] = {
+  def benchmarkSeries(benchmark: BenchmarkLike[_], sizes: Seq[Int], duration: Duration, warmup: Int = defaultWarmup): Seq[(Int, Duration)] = {
     val seriesDuration = duration / (warmup + 1) // keep only one result
     def runSeries = {
       sizes.map { size =>
         // println(s"size: $size")
-        size -> runBenchmark(benchmark, size, iterations, minDuration = seriesDuration / sizes.size)
+        val (total, count) = benchmark.runFor(size, minDuration = seriesDuration / sizes.size)
+        if (count <= 10) println(s"WARNING: only ran $count times for size $size. Give me more time.")
+        val avg = total / count
+        size -> avg
       }
     }
     // println("warmup...")
@@ -78,18 +64,17 @@ package object util {
   }
 
   val numPad = 15
-  def runComparison(comparison: Comparison, sizes: Seq[Int], iterations: Long, duration: Duration, warmup: Int = defaultWarmup): (String, Seq[(String, Seq[(Int, Duration)])]) = {
+  def runComparison(comparison: Comparison, sizes: Seq[Int], duration: Duration, warmup: Int = defaultWarmup): (String, Seq[(String, Seq[(Int, Duration)])]) = {
     val namePad = comparison.benchmarks.map(_.name.length).max
     val durationForSingleRun = (duration / comparison.benchmarks.size / (warmup + 1)) / sizes.size
     println("Comparison Benchmark:  " + comparison.name)
     println("Duration total:        " + duration.toMillis + "ms")
     println("Duration per run:      " + durationForSingleRun.toMillis + "ms")
-    println("Iterations per run:    " + iterations)
     println("(result durations in nanoseconds)")
     println(s"${" " * namePad}${sizes.map(s => s"%${numPad}d" format s).mkString}")
     val benchmarkDuration = duration / comparison.benchmarks.size
     val result = comparison.name -> comparison.benchmarks.map{ benchmark =>
-      val seriesResult = benchmarkSeries(benchmark, sizes, iterations, benchmarkDuration, warmup)
+      val seriesResult = benchmarkSeries(benchmark, sizes, benchmarkDuration, warmup)
       println(benchmark.name.replace(" ", "_").padTo(namePad, " ").mkString + seriesResult.map{ case (_, duration) => s"%${numPad}d" format duration.toNanos }.mkString)
       benchmark.name -> seriesResult
     }

@@ -1,29 +1,10 @@
 // shadow sbt-scalajs' crossProject and CrossType until Scala.js 1.0.0 is released
-import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType}
+import sbtcrossproject.CrossPlugin.autoImport.{ crossProject, CrossType }
 
 val crossScalaVersionList = Seq("2.10.7", "2.11.12", "2.12.8")
 val sharedSettings = Seq(
-    crossScalaVersions := crossScalaVersionList,
-    scalaVersion := crossScalaVersionList.last,
-)
-
-lazy val bench = crossProject(JSPlatform, JVMPlatform).crossType(CrossType.Pure)
-  .settings(sharedSettings)
-  .settings(
-    organization := "com.github.fdietze",
-    name := "bench",
-    version := "master-SNAPSHOT",
-    libraryDependencies ++= (
-      "org.scalatest" %%% "scalatest" % "3.0.5" % Test ::
-      Nil
-    ),
-
-  scalaJSStage in Test := FastOptStage, // not fullopt, because exceptions are removed by optimizations
-
-  initialCommands in console := """
-  import bench._
-  """,
-
+  crossScalaVersions := crossScalaVersionList,
+  scalaVersion := crossScalaVersionList.last,
   scalacOptions ++=
     "-encoding" :: "UTF-8" ::
     "-unchecked" ::
@@ -41,6 +22,26 @@ lazy val bench = crossProject(JSPlatform, JVMPlatform).crossType(CrossType.Pure)
     "-Ywarn-nullary-override" ::
     "-Ywarn-nullary-unit" ::
     Nil,
+)
+
+lazy val bench = crossProject(JSPlatform, JVMPlatform).crossType(CrossType.Pure)
+  .settings(sharedSettings)
+  .settings(
+    organization := "com.github.fdietze",
+    name := "bench",
+    version := "master-SNAPSHOT",
+    libraryDependencies ++= (
+      "io.monix" %%% "minitest" % "2.3.2" % "test" ::
+      Nil
+    ),
+
+    testFrameworks += new TestFramework("minitest.runner.Framework"),
+
+    scalaJSStage in Test := FastOptStage, // not fullopt, because exceptions are removed by optimizations
+
+    initialCommands in console := """
+    import bench._
+    """,
   )
   .jvmSettings(
     libraryDependencies += "org.scala-js" %% "scalajs-stubs" % scalaJSVersion % "provided"
@@ -55,8 +56,6 @@ lazy val bench = crossProject(JSPlatform, JVMPlatform).crossType(CrossType.Pure)
       }
     }
   )
-
-
 
 lazy val example = crossProject(JSPlatform, JVMPlatform).crossType(CrossType.Pure)
   .dependsOn(bench)
