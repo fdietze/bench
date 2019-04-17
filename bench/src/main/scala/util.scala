@@ -28,14 +28,14 @@ package object util {
     List.tabulate[Int]((Math.log(max) / Math.log(base)).ceil.toInt + 1)(i => Math.pow(base, i).toInt)
   }
 
-  def repeatCodeFor[T](minDuration: Duration)(code: => T): (Duration, Long) = {
+  @inline def repeatCodeFor[T](minDuration: Duration)(code: => T): (Duration, Long) = {
     @inline def now: Long = System.nanoTime()
     val durationNs = minDuration.toNanos
-    val start = now
+    var count: Long = 0
 
+    val start = now
     @inline def passed = now - start
 
-    var count: Long = 0
     while (passed < durationNs) {
       code
       count += 1
@@ -46,15 +46,13 @@ package object util {
   }
 
   val defaultWarmup = 2
-  def benchmarkSeries(benchmark: BenchmarkLike[_], sizes: Seq[Int], duration: Duration, warmup: Int = defaultWarmup): Seq[(Int, Duration)] = {
+  def benchmarkSeries(benchmark: BenchmarkLike[_], dataSizes: Seq[Int], duration: Duration, warmup: Int = defaultWarmup): Seq[(Int, Duration)] = {
     val seriesDuration = duration / (warmup + 1) // keep only one result
     def runSeries = {
-      sizes.map { size =>
-        // println(s"size: $size")
-        val (total, count) = benchmark.runFor(size, minDuration = seriesDuration / sizes.size)
-        if (count <= 10) println(s"WARNING: only ran $count times for size $size. Give me more time.")
-        val avg = (total / count).max(1 nanoseconds)
-        size -> avg
+      dataSizes.map { dataSize =>
+        // println(s"dataSize: $dataSize")
+        val avgDuration = benchmark.runFor(dataSize, minDuration = seriesDuration / dataSizes.length)
+        dataSize -> avgDuration.max(1 nanoseconds)
       }
     }
     // println("warmup...")

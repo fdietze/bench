@@ -5,55 +5,48 @@ import scala.concurrent.duration._
 import bench.util._
 
 object BenchmarkSuite extends SimpleTestSuite {
+  // Javascript seems to have a nanoTime accuracy of 1 millisecond.
+  // In this test, this affects the sleep, as well as the measurement (tolerance < 1ms does not pass).
+
+  val sleepUnit: TimeUnit = MICROSECONDS
+  val sleepAmount = 1
+  val sleepDuration = Duration(sleepAmount, sleepUnit)
+  val tolerance = 10 microseconds
+  val minRunDuration = 1000 milliseconds
+
+  @inline def sleepFor(duration: Duration): Unit = {
+    repeatCodeFor(sleepDuration){
+      ()
+    }
+    ()
+  }
+
+  def testBenchmark(b:BenchmarkLike[_]):Unit = {
+    val avgDuration = b.runFor(dataSize = 0, minDuration = minRunDuration)
+    val expected = sleepDuration
+    println((avgDuration - expected).toString)
+    assert((avgDuration - expected).toNanos.abs <= tolerance.toNanos, (avgDuration - expected).toString)
+  }
+
   test("BenchmarkWithoutInit sleep") {
-    val sleep = 30 milliseconds
-    val b = BenchmarkWithoutInit("sleep", { size =>
-      repeatCodeFor(size milliseconds){
-        ()
-      }
-    })
-    val nanos = b.runFor(dataSize = sleep.toMillis.toInt, 1 seconds)._1.toNanos
-    val expectedNanos = sleep.toNanos
-    val tolerance = (100 microseconds).toNanos
-    assert((nanos - expectedNanos).abs <= tolerance, (nanos - expectedNanos).toString)
+    val b = BenchmarkWithoutInit("sleep", size => sleepFor(sleepDuration))
+    testBenchmark(b)
   }
   test("Benchmark sleep") {
-    val sleep = 30 milliseconds
-    val b = Benchmark[Int](
+    val b = Benchmark[Unit](
       "sleep",
-      { size =>
-        repeatCodeFor((size * 2) milliseconds){ () }
-        size
-      },
-      { (size) =>
-        repeatCodeFor(size milliseconds){
-          ()
-        }
-      }
+      size => sleepFor(4 * sleepDuration),
+      _ => sleepFor(sleepDuration)
     )
-    val nanos = b.runFor(dataSize = sleep.toMillis.toInt, 1 seconds)._1.toNanos
-    val expectedNanos = sleep.toNanos
-    val tolerance = (100 microseconds).toNanos
-    assert((nanos - expectedNanos).abs <= tolerance, (nanos - expectedNanos).toString)
+    testBenchmark(b)
   }
 
   test("BenchmarkImmutableInit sleep") {
-    val sleep = 30 milliseconds
-    val b = BenchmarkImmutableInit[Int](
+    val b = BenchmarkImmutableInit[Unit](
       "sleep",
-      { size =>
-        repeatCodeFor((size * 2) milliseconds){ () }
-        size
-      },
-      { (size) =>
-        repeatCodeFor(size milliseconds){
-          ()
-        }
-      }
+      size => sleepFor(4 * sleepDuration),
+      _ => sleepFor(sleepDuration)
     )
-    val nanos = b.runFor(dataSize = sleep.toMillis.toInt, 1 seconds)._1.toNanos
-    val expectedNanos = sleep.toNanos
-    val tolerance = (100 microseconds).toNanos
-    assert((nanos - expectedNanos).abs <= tolerance, (nanos - expectedNanos).toString)
+    testBenchmark(b)
   }
 }
