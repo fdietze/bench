@@ -3,7 +3,7 @@ package bench
 import scala.concurrent.duration._
 import util._
 
-case class Comparison(name: String, benchmarks: Seq[BenchmarkLike[_]])
+@inline final case class Comparison(name: String, benchmarks: Seq[BenchmarkLike[_]])
 
 trait BenchmarkLike[T] {
   def name: String
@@ -11,17 +11,20 @@ trait BenchmarkLike[T] {
   protected def countWarning = 10
 }
 
-
-case class BenchmarkWithoutInit(name: String, code: (Int) => Any) extends BenchmarkLike[Unit] {
+@inline final case class BenchmarkWithoutInit(name: String, code: (Int) => Any) extends BenchmarkLike[Unit] {
   def runFor(dataSize: Int, minDuration: Duration): Duration = {
     val (codeDuration, count) = repeatCodeFor(minDuration) { code(dataSize) }
     if (count <= countWarning) println(s"WARNING: only ran $count times for size $dataSize. Give me more time.")
     val avgCodeDuration: Duration = codeDuration / count
     avgCodeDuration
   }
+
+  def runUntilConfident(dataSize: Int): Duration = {
+    repeatCodeUntilConfident() { code(dataSize) }
+  }
 }
 
-case class BenchmarkImmutableInit[T](name: String, init: Int => T, code: (T) => Any) extends BenchmarkLike[T] {
+@inline final case class BenchmarkImmutableInit[T](name: String, init: Int => T, code: (T) => Any) extends BenchmarkLike[T] {
   def runFor(dataSize: Int, minDuration: Duration): Duration = {
     val initData = init(dataSize)
     val (codeDuration, count) = repeatCodeFor(minDuration) { code(initData) }
@@ -32,7 +35,7 @@ case class BenchmarkImmutableInit[T](name: String, init: Int => T, code: (T) => 
 }
 
 // Useful for when the data returned from `init` will be mutated by `code`
-case class Benchmark[T](name: String, init: Int => T, code: (T) => Any) extends BenchmarkLike[T] {
+@inline final case class Benchmark[T](name: String, init: Int => T, code: (T) => Any) extends BenchmarkLike[T] {
   def runFor(dataSize: Int, minDuration: Duration): Duration = {
     val (onlyInitDuration, onlyInitCount) = repeatCodeFor(minDuration / 2) {
       init(dataSize)

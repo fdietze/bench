@@ -22,6 +22,9 @@ val sharedSettings = Seq(
     /* "-Ywarn-nullary-override" :: */
     /* "-Ywarn-nullary-unit" :: */
     Nil,
+  resolvers ++=
+    ("jitpack" at "https://jitpack.io") ::
+    Nil,
 )
 
 lazy val bench = crossProject(JSPlatform, JVMPlatform)
@@ -31,7 +34,8 @@ lazy val bench = crossProject(JSPlatform, JVMPlatform)
     name := "bench",
     version := "master-SNAPSHOT",
     libraryDependencies ++= (
-      "io.monix" %%% "minitest" % "2.2.2" % "test" ::
+      "com.github.fdietze.flatland" %%% "flatland" % "4b77bbd" ::
+      "io.monix" %%% "minitest" % "2.3.2" % "test" ::
       Nil
     ),
 
@@ -43,9 +47,6 @@ lazy val bench = crossProject(JSPlatform, JVMPlatform)
     initialCommands in console := """
     import bench._
     """,
-  )
-  .jvmSettings(
-    libraryDependencies += "org.scala-js" %% "scalajs-stubs" % scalaJSVersion % "provided"
   )
   .jsSettings(
     scalacOptions ++= {
@@ -63,9 +64,14 @@ lazy val example = crossProject(JSPlatform, JVMPlatform).crossType(CrossType.Pur
   .settings(sharedSettings)
   .jsSettings(
     scalaJSStage in Global := FullOptStage,
+    scalacOptions ++=
+      "-opt:l:method" ::
+      "-opt:l:inline" ::
+      "-opt-inline-from:**" ::
+      Nil,
     scalaJSUseMainModuleInitializer := true,
     scalaJSModuleKind := ModuleKind.CommonJSModule
   )
 
 // ctrl+c does not quit
-cancelable in Global := true
+// cancelable in Global := true
