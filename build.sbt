@@ -24,7 +24,7 @@ val sharedSettings = Seq(
     Nil,
 )
 
-lazy val bench = crossProject(JSPlatform, JVMPlatform).crossType(CrossType.Pure)
+lazy val bench = crossProject(JSPlatform, JVMPlatform)
   .settings(sharedSettings)
   .settings(
     organization := "com.github.fdietze",
@@ -36,6 +36,7 @@ lazy val bench = crossProject(JSPlatform, JVMPlatform).crossType(CrossType.Pure)
     ),
 
     testFrameworks += new TestFramework("minitest.runner.Framework"),
+    scalaJSModuleKind := ModuleKind.CommonJSModule,
 
     scalaJSStage in Test := FastOptStage, // not fullopt, because exceptions are removed by optimizations
 

@@ -28,8 +28,9 @@ package object util {
     List.tabulate[Int]((Math.log(max) / Math.log(base)).ceil.toInt + 1)(i => Math.pow(base, i).toInt)
   }
 
+  @inline def now = PlatformNow.nanoTime
+
   @inline def repeatCodeFor[T](minDuration: Duration)(code: => T): (Duration, Long) = {
-    @inline def now: Long = System.nanoTime()
     val durationNs = minDuration.toNanos
     var count: Long = 0
 
