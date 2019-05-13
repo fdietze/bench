@@ -63,7 +63,8 @@ lazy val example = crossProject(JSPlatform, JVMPlatform).crossType(CrossType.Pur
   .settings(sharedSettings)
   .jsSettings(
     scalaJSStage in Global := FullOptStage,
-    scalaJSUseMainModuleInitializer := true
+    scalaJSUseMainModuleInitializer := true,
+    scalaJSModuleKind := ModuleKind.CommonJSModule
   )
 
 // ctrl+c does not quit
