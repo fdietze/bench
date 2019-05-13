@@ -70,7 +70,7 @@ package object util {
     medianFromSortedDouble(sortedDifferences)
   }
 
-  def bootstrappingCI(population: IndexedSeq[Long], confidence: Double = 0.95, m: Int = 10000, k: Int = 100000): (Double, Double, Double) = {
+  def bootstrappingCI(population: IndexedSeq[Long], confidence: Double = 0.95, m: Int = 1000, k: Int = 10000): (Double, Double, Double) = {
     val n = population.length
     val means = new Array[Double](k)
     loop(k) { i =>
@@ -87,7 +87,7 @@ package object util {
   }
 
   // @inline, such that code hopefully gets inlined
-  @inline def repeatCodeUntilConfident(maxSamples: Int = 1000000, error: Double = 0.01, zStar: Double = 1.96)(code: => Any): Duration = {
+  @inline def repeatCodeUntilConfident(maxSamples: Int = 100000, error: Double = 0.01, zStar: Double = 1.96)(code: => Any): Duration = {
     import Math.sqrt
     // https://www.mathsisfun.com/data/confidence-interval.html
     // https://www.ucl.ac.uk/child-health/short-courses-events/about-statistical-courses/research-methods-and-statistics/chapter-8-content-8
@@ -110,13 +110,13 @@ package object util {
       samples += (now - start)
     }
 
-    while (totalSamples < 10001) {
+    while (totalSamples < 1000000) {
       measure{
         code
       }
       // println(s"i: ${totalSamples}")
-      if (totalSamples > 30 && totalSamples % 10000 == 0) {
-        println(samples)
+      if (totalSamples > 30 && totalSamples % 5000 == 0) {
+        // println(samples)
         val (low, median, high) = bootstrappingCI(samples)
         println(f"i: ${totalSamples}%05d, n: ${samples.length}, median: $median%.2f, 95%% confidence Interval: [$low%.2f,$high%.2f] [${median - low}%.2f,${high - median}%.2f] size: ${high-low}%.2f")
       }
