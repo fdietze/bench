@@ -3,10 +3,195 @@ package bench.example
 import scala.concurrent.duration._
 import bench._
 import bench.util._
+import scala.scalajs.js
+import scala.scalajs.js.|
+import scala.scalajs.js.JSConverters._
+import scala.scalajs.js.annotation._
 
 import scala.collection.mutable
 
+@js.native
+@JSGlobal("Map")
+class JsMap[Key, Value] extends js.Object {
+  def set(key: Key, value: Value): Unit = js.native
+  def delete(key: Key): Unit = js.native
+  def clear(): Unit = js.native
+  def get(key: Key): js.UndefOr[Value] = js.native
+  def has(key: Key): Boolean = js.native
+  def keys: Iterator[Key] = js.native
+  def values: Iterator[Value] = js.native
+  def entries: Iterator[js.Array[Key | Value]] = js.native
+  def forEach(f: (Key, Value) => Unit): Unit = js.native
+  def size: Int = js.native
+}
+
+@js.native
+trait DictionaryRawApply[A] extends js.Object {
+  @JSBracketAccess
+  def apply(key: String): js.UndefOr[A] = js.native
+}
+
+case class Foo(a: Long, b: Long)
+
 object CollectionBenchmarks {
+  val hashmap = Comparison("Map", Seq(
+    Benchmark[(js.Dictionary[Int], Int)](
+      "js.dictionary string",
+      { n =>
+        val map = js.Dictionary[Int]()
+        (0 to n).foreach { i => map += i.toString -> i }
+        (map, n)
+      },
+      { case (map, n) =>
+        (0 to n).foreach { i => map(i.toString) }
+      }
+    ),
+    Benchmark[(js.Dictionary[Int], Int)](
+      "js.dictionary raw string",
+      { n =>
+        val map = js.Dictionary[Int]()
+        (0 to n).foreach { i => map += i.toString -> i }
+        (map, n)
+      },
+      { case (map, n) =>
+        (0 to n).foreach { i => map.asInstanceOf[DictionaryRawApply[Int]].apply(i.toString) }
+      }
+    ),
+    Benchmark[(JsMap[String, Int], Int)](
+      "js.map string",
+      { n =>
+        val map = new JsMap[String, Int]()
+        (0 to n).foreach { i => map.set(i.toString, i) }
+        (map, n)
+      },
+      { case (map, n) =>
+        (0 to n).foreach { i => map.get(i.toString) }
+      }
+    ),
+    Benchmark[(mutable.HashMap[String, Int], Int)](
+      "mutable.hashmap string",
+      { n =>
+        val map = new mutable.HashMap[String, Int]
+        (0 to n).foreach { i => map += i.toString -> i }
+        (map, n)
+      },
+      { case (map, n) =>
+        (0 to n).foreach { i => map(i.toString) }
+      }
+    ),
+    Benchmark[(Map[String, Int], Int)](
+      "immutable.map string",
+      { n =>
+        var map = Map[String, Int]()
+        (0 to n).foreach { i => map += i.toString -> i }
+        (map, n)
+      },
+      { case (map, n) =>
+        (0 to n).foreach { i => map(i.toString) }
+      }
+    ),
+    Benchmark[(js.Dictionary[Int], Int)](
+      "js.dictionary raw case class",
+      { n =>
+        val map = js.Dictionary[Int]()
+        (0 to n).foreach { i => map += Foo(i,i).hashCode.toString -> i }
+        (map, n)
+      },
+      { case (map, n) =>
+        (0 to n).foreach { i => map.asInstanceOf[DictionaryRawApply[Int]].apply(Foo(i,i).hashCode.toString) }
+      }
+    ),
+    Benchmark[(JsMap[Int, Int], Int)](
+      "js.map case class",
+      { n =>
+        val map = new JsMap[Int, Int]()
+        (0 to n).foreach { i => map.set(Foo(i,i).hashCode, i) }
+        (map, n)
+      },
+      { case (map, n) =>
+        (0 to n).foreach { i => map.get(Foo(i,i).hashCode) }
+      }
+    ),
+    Benchmark[(mutable.HashMap[Foo, Int], Int)](
+      "mutable.hashmap case class",
+      { n =>
+        val map = new mutable.HashMap[Foo, Int]
+        (0 to n).foreach { i => map += Foo(i,i) -> i }
+        (map, n)
+      },
+      { case (map, n) =>
+        (0 to n).foreach { i => map(Foo(i,i)) }
+      }
+    ),
+  ))
+
+  val hashmapBuild = Comparison("MapBuild", Seq(
+    Benchmark[Int](
+      "js.dictionary string",
+      n => n,
+      { n =>
+        val map = js.Dictionary[Int]()
+        (0 to n).foreach { i => map += i.toString -> i }
+        map
+      },
+    ),
+    Benchmark[Int](
+      "js.map string",
+      n => n,
+      { n =>
+        val map = new JsMap[String, Int]()
+        (0 to n).foreach { i => map.set(i.toString, i) }
+        map
+      },
+    ),
+    Benchmark[Int](
+      "mutable.hashmap string",
+      n => n,
+      { n =>
+        val map = new mutable.HashMap[String, Int]
+        (0 to n).foreach { i => map += i.toString -> i }
+        map
+      },
+    ),
+    Benchmark[Int](
+      "immutable.map string",
+      n => n,
+      { n =>
+        var map = Map[String, Int]()
+        (0 to n).foreach { i => map += i.toString -> i }
+        map
+      },
+    ),
+    Benchmark[Int](
+      "js.dictionary case class",
+      n => n,
+      { n =>
+        val map = js.Dictionary[Int]()
+        (0 to n).foreach { i => map += Foo(i,i).hashCode.toString -> i }
+        map
+      },
+    ),
+    Benchmark[Int](
+      "js.map case class",
+      n => n,
+      { n =>
+        val map = new JsMap[Int, Int]()
+        (0 to n).foreach { i => map.set(Foo(i,i).hashCode, i) }
+        map
+      },
+    ),
+    Benchmark[Int](
+      "mutable.hashmap case class",
+      n => n,
+      { n =>
+        val map = new mutable.HashMap[Foo, Int]
+        (0 to n).foreach { i => map += Foo(i,i) -> i }
+        map
+      },
+    ),
+  ))
+
+
   val linearScan = Comparison("Linear Scan", Seq(
     Benchmark[mutable.HashSet[Int]](
       "mutable set foreach",
@@ -23,6 +208,15 @@ object CollectionBenchmarks {
       { set =>
         var sum: Int = 0
         set.foreach(sum += _)
+        sum
+      }
+    ),
+    Benchmark[js.Array[Int]](
+      "js.array foreach",
+      n => Array.fill[Int](n)(rInt).toJSArray,
+      { (arr) =>
+        var sum: Int = 0
+        arr.foreach(sum += _)
         sum
       }
     ),
