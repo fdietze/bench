@@ -26,12 +26,26 @@ class JsMap[Key, Value] extends js.Object {
 }
 
 @js.native
-trait DictionaryRawApply[A] extends js.Object {
+@JSGlobal("Object")
+class DictionaryRawApply[A] extends js.Object {
   @JSBracketAccess
   def apply(key: String): js.UndefOr[A] = js.native
+
+  @JSBracketAccess
+  def update(key: String, value: A): Unit = js.native
 }
 
-case class Foo(a: Long, b: Long)
+@js.native
+@JSGlobal("Array")
+class ArrayRawApply[Value] extends js.Object {
+  @JSBracketAccess
+  def apply(key: Double | Long | Int): js.UndefOr[Value] = js.native
+
+  @JSBracketAccess
+  def update(key: Double | Long | Int, value: Value): Unit = js.native
+}
+
+case class Foo(left: Long, right: Long)
 
 object CollectionBenchmarks {
   val hashmap = Comparison("Map", Seq(
@@ -46,15 +60,15 @@ object CollectionBenchmarks {
         (0 to n).foreach { i => map(i.toString) }
       }
     ),
-    Benchmark[(js.Dictionary[Int], Int)](
+    Benchmark[(DictionaryRawApply[Int], Int)](
       "js.dictionary raw string",
       { n =>
-        val map = js.Dictionary[Int]()
-        (0 to n).foreach { i => map += i.toString -> i }
+        val map = new DictionaryRawApply[Int]()
+        (0 to n).foreach { i => map(i.toString) -> i }
         (map, n)
       },
       { case (map, n) =>
-        (0 to n).foreach { i => map.asInstanceOf[DictionaryRawApply[Int]].apply(i.toString) }
+        (0 to n).foreach { i => map(i.toString) }
       }
     ),
     Benchmark[(JsMap[String, Int], Int)](
@@ -90,26 +104,49 @@ object CollectionBenchmarks {
         (0 to n).foreach { i => map(i.toString) }
       }
     ),
-    Benchmark[(js.Dictionary[Int], Int)](
-      "js.dictionary raw case class",
+    Benchmark[(JsMap[Long, JsMap[Long, Int]], Int)](
+      "js.map nested map",
       { n =>
-        val map = js.Dictionary[Int]()
-        (0 to n).foreach { i => map += Foo(i,i).hashCode.toString -> i }
+        val map = new JsMap[Long, JsMap[Long, Int]]()
+        (0 to n).foreach { i =>
+          map.get(i).fold {
+            val inner = new JsMap[Long, Int]()
+            inner.set(i, i)
+            map.set(i, inner)
+          } { inner =>
+            inner.set(i, i)
+          }
+        }
         (map, n)
       },
       { case (map, n) =>
-        (0 to n).foreach { i => map.asInstanceOf[DictionaryRawApply[Int]].apply(Foo(i,i).hashCode.toString) }
+        (0 to n).foreach { i =>
+          val foo = Foo(i, i)
+          map.get(foo.left).flatMap(_.get(foo.right))
+        }
       }
     ),
-    Benchmark[(JsMap[Int, Int], Int)](
-      "js.map case class",
+    Benchmark[(ArrayRawApply[ArrayRawApply[Int]], Int)](
+      "js.array nested array",
       { n =>
-        val map = new JsMap[Int, Int]()
-        (0 to n).foreach { i => map.set(Foo(i,i).hashCode, i) }
-        (map, n)
+        val arr = new ArrayRawApply[ArrayRawApply[Int]]()
+        (0 to n).foreach { i =>
+          val foo = Foo(i, i)
+          arr(foo.left).fold {
+            val inner = new ArrayRawApply[Int]()
+            inner(foo.right) = i
+            arr(foo.left) = inner
+          } { inner =>
+            inner(foo.right) = i
+          }
+        }
+        (arr, n)
       },
-      { case (map, n) =>
-        (0 to n).foreach { i => map.get(Foo(i,i).hashCode) }
+      { case (arr, n) =>
+        (0 to n).foreach { i =>
+          val foo = Foo(i, i)
+          arr(foo.left).flatMap(_(foo.right))
+        }
       }
     ),
     Benchmark[(mutable.HashMap[Foo, Int], Int)](
@@ -132,6 +169,15 @@ object CollectionBenchmarks {
       { n =>
         val map = js.Dictionary[Int]()
         (0 to n).foreach { i => map += i.toString -> i }
+        map
+      },
+    ),
+    Benchmark[Int](
+      "js.dictionary raw string",
+      n => n,
+      { n =>
+        val map = new DictionaryRawApply[Int]()
+        (0 to n).foreach { i => map(i.toString) = i }
         map
       },
     ),
@@ -163,20 +209,38 @@ object CollectionBenchmarks {
       },
     ),
     Benchmark[Int](
-      "js.dictionary case class",
+      "js.map nested map",
       n => n,
       { n =>
-        val map = js.Dictionary[Int]()
-        (0 to n).foreach { i => map += Foo(i,i).hashCode.toString -> i }
+        val map = new JsMap[Long, JsMap[Long, Int]]()
+        (0 to n).foreach { i =>
+          val foo = Foo(i, i)
+          map.get(i).fold {
+            val inner = new JsMap[Long, Int]()
+            inner.set(foo.right, i)
+            map.set(foo.left, inner)
+          } { inner =>
+            inner.set(foo.right, i)
+          }
+        }
         map
       },
     ),
     Benchmark[Int](
-      "js.map case class",
+      "js.array nested array",
       n => n,
       { n =>
-        val map = new JsMap[Int, Int]()
-        (0 to n).foreach { i => map.set(Foo(i,i).hashCode, i) }
+        val arr = new ArrayRawApply[ArrayRawApply[Int]]()
+        (0 to n).foreach { i =>
+          val foo = Foo(i, i)
+          arr(i).fold {
+            val inner = new ArrayRawApply[Int]()
+            inner(foo.right) = i
+            arr(foo.left) = inner
+          } { inner =>
+            inner(foo.right) = i
+          }
+        }
         map
       },
     ),
