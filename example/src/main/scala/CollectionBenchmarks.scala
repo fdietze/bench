@@ -5,8 +5,25 @@ import bench._
 import bench.util._
 
 import scala.collection.mutable
+import scala.reflect.ClassTag
 
 object CollectionBenchmarks {
+  @inline def normalFlatMap[T, R : ClassTag](arr: Array[T])(f: T => Option[R]): Array[R] = {
+    val res = Array.newBuilder[R]
+    arr.foreach { t =>
+      f(t).foreach(res += _)
+    }
+    res.result()
+  }
+  @inline def mapNonNull[T, R <: AnyRef : ClassTag](arr: Array[T])(f: T => R): Array[R] = {
+    val res = Array.newBuilder[R]
+    arr.foreach { t =>
+      val r = f(t)
+      if (r != null) res += r
+    }
+    res.result()
+  }
+
   val linearScan = Comparison("Linear Scan", Seq(
     Benchmark[mutable.HashSet[Int]](
       "mutable set foreach",
@@ -23,6 +40,24 @@ object CollectionBenchmarks {
       { set =>
         var sum: Int = 0
         set.foreach(sum += _)
+        sum
+      }
+    ),
+    Benchmark[List[Int]](
+      "list foreach",
+      n => List.fill[Int](n)(rInt),
+      { (arr) =>
+        var sum: Int = 0
+        arr.foreach(sum += _)
+        sum
+      }
+    ),
+    Benchmark[mutable.ArrayBuffer[Int]](
+      "array buffer foreach",
+      n => mutable.ArrayBuffer.fill[Int](n)(rInt),
+      { (arr) =>
+        var sum: Int = 0
+        arr.foreach(sum += _)
         sum
       }
     ),
@@ -78,6 +113,45 @@ object CollectionBenchmarks {
       }
     ),
     Benchmark[Int](
+      "list prepend",
+      n => n,
+      { n =>
+        var arr = List.empty[String]
+        var i = 0
+        while (i < n) {
+          arr ::= i.toString
+          i += 1
+        }
+        arr
+      }
+    ),
+    Benchmark[Int](
+      "array buffer",
+      n => n,
+      { n =>
+        val arr = mutable.ArrayBuffer[String]()
+        var i = 0
+        while (i < n) {
+          arr += i.toString
+          i += 1
+        }
+        arr
+      }
+    ),
+    Benchmark[Int](
+      "array builder",
+      n => n,
+      { n =>
+        val arr = Array.newBuilder[String]
+        var i = 0
+        while (i < n) {
+          arr += i.toString
+          i += 1
+        }
+        arr.result()
+      }
+    ),
+    Benchmark[Int](
       "array",
       n => n,
       { n =>
@@ -85,19 +159,6 @@ object CollectionBenchmarks {
         var i = 0
         while (i < n) {
           arr(i) = i.toString
-          i += 1
-        }
-        arr
-      }
-    ),
-    Benchmark[Int](
-      "arraybuffer",
-      n => n,
-      { n =>
-        val arr = mutable.ArrayBuffer[String]()
-        var i = 0
-        while (i < n) {
-          arr += i.toString
           i += 1
         }
         arr
@@ -120,6 +181,20 @@ object CollectionBenchmarks {
         set.map(_ * 10)
       }
     ),
+    Benchmark[List[Int]](
+      "list",
+      n => List.fill[Int](n)(rInt),
+      { (arr) =>
+        arr.map(_ * 10)
+      }
+    ),
+    Benchmark[mutable.ArrayBuffer[Int]](
+      "array buffer",
+      n => mutable.ArrayBuffer.fill[Int](n)(rInt),
+      { (arr) =>
+        arr.map(_ * 10)
+      }
+    ),
     Benchmark[Array[Int]](
       "array",
       n => Array.fill[Int](n)(rInt),
@@ -139,7 +214,38 @@ object CollectionBenchmarks {
         }
         arr
       }
-    )
+    ),
+  ))
+
+  val flatMap = Comparison("FlatMap", Seq(
+    Benchmark[Array[String]](
+      "flatMap option",
+      n => Array.fill[String](n)(rInt.toString),
+      { (arr) =>
+        arr.flatMap(x => if (x.isEmpty) None else Some(x + 10))
+      }
+    ),
+    Benchmark[Array[String]](
+      "flatMap array",
+      n => Array.fill[String](n)(rInt.toString),
+      { (arr) =>
+        arr.flatMap(x => if (x.isEmpty) Array.empty[String] else Array(x + 10))
+      }
+    ),
+    Benchmark[Array[String]](
+      "flatMap custom",
+      n => Array.fill[String](n)(rInt.toString),
+      { (arr) =>
+        normalFlatMap(arr)(x => if (x.isEmpty) None else Some(x + 10))
+      }
+    ),
+    Benchmark[Array[String]](
+      "mapNonNull",
+      n => Array.fill[String](n)(rInt.toString),
+      { (arr) =>
+        mapNonNull[String, String](arr)(x => if (x.isEmpty) null else x + 10)
+      }
+    ),
   ))
 
   val lookup = Comparison("Lookup", Seq(
@@ -157,13 +263,55 @@ object CollectionBenchmarks {
         set.contains(n)
       }
     ),
-    Benchmark[(Int, Array[Int])](
-      "array contains",
-      n => (n, Array.range(0, n)),
-      { case (n, arr) =>
-        arr.contains(n)
+    Benchmark[(Int, mutable.HashSet[Int])](
+      "mutable set apply",
+      n => (n, new mutable.HashSet[Int]() ++ Array.range(0, n)),
+      { case (n, set) =>
+        set.apply(n)
       }
     ),
+    Benchmark[(Int, Set[Int])](
+      "immutable set apply",
+      n => (n, Array.range(0, n).toSet),
+      { case (n, set) =>
+        set.apply(n)
+      }
+    ),
+    // Benchmark[(Int, List[Int])](
+    //   "list contains",
+    //   n => (n, List.range(0, n)),
+    //   { case (n, arr) =>
+    //     arr.contains(n)
+    //   }
+    // ),
+    Benchmark[(Int, List[Int])](
+      "list exists",
+      n => (n, List.range(0, n)),
+      { case (n, arr) =>
+        arr.exists(_ == n)
+      }
+    ),
+    // Benchmark[(Int, mutable.ArrayBuffer[Int])](
+    //   "array buffer contains",
+    //   n => (n, mutable.ArrayBuffer.range(0, n)),
+    //   { case (n, arr) =>
+    //     arr.contains(n)
+    //   }
+    // ),
+    Benchmark[(Int, mutable.ArrayBuffer[Int])](
+      "array buffer exists",
+      n => (n, mutable.ArrayBuffer.range(0, n)),
+      { case (n, arr) =>
+        arr.exists(_ == n)
+      }
+    ),
+    // Benchmark[(Int, Array[Int])](
+    //   "array contains",
+    //   n => (n, Array.range(0, n)),
+    //   { case (n, arr) =>
+    //     arr.contains(n)
+    //   }
+    // ),
     Benchmark[(Int, Array[Int])](
       "array exists",
       n => (n, Array.range(0, n)),
