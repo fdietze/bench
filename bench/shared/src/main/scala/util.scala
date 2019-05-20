@@ -87,15 +87,17 @@ package object util {
     )
   }
 
-  def kMeans(population: IndexedSeq[Long], k: Int = 5, maxIterations: Int = 500): Array[Double] = {
+  def kMedians(population: IndexedSeq[Long], k: Int = 6, tolerance: Double = 0.00001, maxIterations: Int = 500): (Array[Double], Array[Int]) = {
     val n = population.length
+    val lastCentroids = Array.fill[Double](k)(Double.NaN)
     val centroids = Array.tabulate[Double](k)(i => population(i * n / k))
     val belonging = Array.tabulate[Int](n)(i => i % k)
 
     var minDistance = Double.MaxValue
     var minCentroid = 0
     var iteration = 0
-    while(iteration < maxIterations) {
+    var running = true
+    while (running && iteration < maxIterations) {
       // for each sample, find closest centroid
       population.foreachIndexAndElement{ (i, x) =>
         minDistance = Long.MaxValue
@@ -112,23 +114,30 @@ package object util {
 
       // calculate new centroids
       loop(k) { ci =>
-        var sum:Long = 0
-        var count = 0
+        // backup centroids for tolerance comparison
+        lastCentroids(ci) = centroids(ci)
+
+        val samples = mutable.ArrayBuffer.empty[Long]
         belonging.foreachIndexAndElement{ (i, myci) =>
           if (ci == myci) {
-            sum += population(i)
-            count += 1
+            samples += population(i)
           }
         }
-        if(count > 0)
-          centroids(ci) = sum.toDouble / count
+        if (samples.length > 0)
+          centroids(ci) = medianFromSorted(samples.sorted)
       }
-      // println(centroids.toList)
+
+      // terminate if accurate enough
+      running = false
+      loop(k) { ci =>
+        if ((centroids(ci) - lastCentroids(ci)).abs / lastCentroids(ci) > tolerance)
+          running = true
+      }
 
       iteration += 1
     }
 
-    centroids
+    (centroids, belonging)
   }
 
   // @inline, such that code hopefully gets inlined
@@ -154,7 +163,7 @@ package object util {
       samples += (now - start)
     }
 
-    while (totalSamples < 20000) {
+    while (totalSamples < 200000) {
       measure{
         code
       }
@@ -166,9 +175,11 @@ package object util {
       totalSamples += 1
     }
     println(samples.mkString(","))
-    println("clusters: " + kMeans(samples).toList)
-
     val (low, median, high) = bootstrappingCI(samples)
+    println(f"i: ${totalSamples}%05d, n: ${samples.length}, median: $median%.2f, 95%% confidence Interval: [$low%.2f,$high%.2f] [${median - low}%.2f,${high - median}%.2f] size: ${high - low}%.2f")
+    println("clusters: " + kMedians(samples)._1.toList)
+
+    // val (low, median, high) = bootstrappingCI(samples)
     Duration.fromNanos(median)
   }
 
