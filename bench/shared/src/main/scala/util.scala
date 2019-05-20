@@ -3,6 +3,7 @@ package bench
 import scala.concurrent.duration._
 import flatland._
 import collection.breakOut
+import collection.mutable
 
 package object util {
   @inline def rInt: Int = scala.util.Random.nextInt
@@ -86,14 +87,58 @@ package object util {
     )
   }
 
+  def kMeans(population: IndexedSeq[Long], k: Int = 5, maxIterations: Int = 500): Array[Double] = {
+    val n = population.length
+    val centroids = Array.tabulate[Double](k)(i => population(i * n / k))
+    val belonging = Array.tabulate[Int](n)(i => i % k)
+
+    var minDistance = Double.MaxValue
+    var minCentroid = 0
+    var iteration = 0
+    while(iteration < maxIterations) {
+      // for each sample, find closest centroid
+      population.foreachIndexAndElement{ (i, x) =>
+        minDistance = Long.MaxValue
+        minCentroid = 0
+        loop(k) { ci =>
+          val distance = (centroids(ci) - x).abs
+          if (distance < minDistance) {
+            minDistance = distance
+            minCentroid = ci
+          }
+        }
+        belonging(i) = minCentroid
+      }
+
+      // calculate new centroids
+      loop(k) { ci =>
+        var sum:Long = 0
+        var count = 0
+        belonging.foreachIndexAndElement{ (i, myci) =>
+          if (ci == myci) {
+            sum += population(i)
+            count += 1
+          }
+        }
+        if(count > 0)
+          centroids(ci) = sum.toDouble / count
+      }
+      // println(centroids.toList)
+
+      iteration += 1
+    }
+
+    centroids
+  }
+
   // @inline, such that code hopefully gets inlined
-  @inline def repeatCodeUntilConfident(maxSamples: Int = 100000, error: Double = 0.01, zStar: Double = 1.96)(code: => Any): Duration = {
+  @inline def repeatCodeUntilConfident(error: Double = 0.01, zStar: Double = 1.96)(code: => Any): Duration = {
     import Math.sqrt
     // https://www.mathsisfun.com/data/confidence-interval.html
     // https://www.ucl.ac.uk/child-health/short-courses-events/about-statistical-courses/research-methods-and-statistics/chapter-8-content-8
     // https://htor.inf.ethz.ch/blog/index.php/2016/04/14/how-many-measurements-do-you-need-to-report-a-performance-number/
 
-    val samples = ArrayQueueLong.create(maxSamples)
+    val samples = mutable.ArrayBuffer.empty[Long]
     // var sortedSamples: IndexedSeq[Long] = IndexedSeq.empty
     // def median = medianFromSorted(sortedSamples)
     // def MAD = madFromSorted(sortedSamples)
@@ -102,7 +147,6 @@ package object util {
     // def lowerConfidenceLimit = sortedSamples((samples.size / 2.0 - zStar * sqrt(samples.size) / 2.0).toInt)
     // def upperConfidenceLimit = sortedSamples((1.0 + samples.size / 2.0 + zStar * sqrt(samples.size) / 2.0).toInt)
 
-    @inline def now: Long = System.nanoTime()
     var start = 0L
     @inline def measure(code: => Any) = {
       start = now
@@ -110,18 +154,19 @@ package object util {
       samples += (now - start)
     }
 
-    while (totalSamples < 1000000) {
+    while (totalSamples < 20000) {
       measure{
         code
       }
       // println(s"i: ${totalSamples}")
-      if (totalSamples > 30 && totalSamples % 5000 == 0) {
-        // println(samples)
-        val (low, median, high) = bootstrappingCI(samples)
-        println(f"i: ${totalSamples}%05d, n: ${samples.length}, median: $median%.2f, 95%% confidence Interval: [$low%.2f,$high%.2f] [${median - low}%.2f,${high - median}%.2f] size: ${high-low}%.2f")
+      if (totalSamples > 30 && totalSamples % 1000 == 0) {
+        // val (low, median, high) = bootstrappingCI(samples)
+        // println(f"i: ${totalSamples}%05d, n: ${samples.length}, median: $median%.2f, 95%% confidence Interval: [$low%.2f,$high%.2f] [${median - low}%.2f,${high - median}%.2f] size: ${high - low}%.2f")
       }
       totalSamples += 1
     }
+    println(samples.mkString(","))
+    println("clusters: " + kMeans(samples).toList)
 
     val (low, median, high) = bootstrappingCI(samples)
     Duration.fromNanos(median)
