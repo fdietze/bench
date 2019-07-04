@@ -11,7 +11,7 @@ object BenchmarkSuite extends SimpleTestSuite {
   val sleepUnit: TimeUnit = MICROSECONDS
   val sleepAmount = 1
   val sleepDuration = Duration(sleepAmount, sleepUnit)
-  val tolerance = 1 microseconds
+  val tolerance = 10 microseconds
   val minRunDuration = 1000 milliseconds
 
   @inline def sleepFor(duration: Duration): Unit = {
