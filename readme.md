@@ -17,12 +17,16 @@ For accurate nodejs time measurements:
 scalaJSModuleKind := ModuleKind.CommonJSModule
 ```
 
+# Machine configuration
+
+## Disable Hyperthreading in the BIOS
+
 ## Set your CPU to a fixed frequency
-On Linux:
 ```bash
 watch "lscpu | grep MHz"
 ```
 
+On Linux:
 ```bash
 sudo cpupower frequency-set -g performance
 sudo cpupower frequency-set -u 3GHz
@@ -33,4 +37,36 @@ Reset (Often, powersave is the default):
 sudo cpupower frequency-set -g powersave
 ```
 
-## Pin thread to specific core?
+## Dedicate specific cores to the benchmark
+https://stackoverflow.com/questions/11111852/how-to-shield-a-cpu-from-the-linux-scheduler-prevent-it-scheduling-threads-onto
+
+Set a create cpuset called `bench` on cpu 1 and move kernel threads away from it:
+```bash
+# cset bench --cpu 1
+# cset bench --kthread on
+```
+
+Reset:
+```bash
+# cset bench --reset
+```
+
+Execute command in `bench`:
+```bash
+# cset bench --exec mycommand -- -arg1 -arg2
+```
+
+
+
+## JVM: Pin thread to specific core?
+
+## Garbage collector
+
+## jit configuration
+
+
+## no batching
+
+## nanoTime/performance.now vs TimeMillis
+
+## no mean
