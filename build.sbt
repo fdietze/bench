@@ -1,7 +1,7 @@
 // shadow sbt-scalajs' crossProject and CrossType until Scala.js 1.0.0 is released
 import sbtcrossproject.CrossPlugin.autoImport.{ crossProject, CrossType }
 
-val crossScalaVersionList = Seq("2.11.12", "2.12.8", "2.13.0-M5")
+val crossScalaVersionList = Seq("2.11.12", "2.12.8", "2.13.0")
 val sharedSettings = Seq(
   crossScalaVersions := crossScalaVersionList,
   scalaVersion := crossScalaVersionList.last,
@@ -13,8 +13,8 @@ val sharedSettings = Seq(
     "-feature" ::
     "-language:_" ::
     "-Xcheckinit" ::
-    "-Xfuture" ::
-    "-Xlint:-unused" ::
+    /* "-Xfuture" :: */
+    /* "-Xlint:-unused" :: */
     /* "-Ypartial-unification" :: */
     /* "-Yno-adapted-args" :: */
     /* "-Ywarn-infer-any" :: */
@@ -22,6 +22,10 @@ val sharedSettings = Seq(
     /* "-Ywarn-nullary-override" :: */
     /* "-Ywarn-nullary-unit" :: */
     Nil,
+
+    /* scalafixDependencies in ThisBuild += "org.scala-lang.modules" %% "scala-collection-migrations" % "2.0.0", */
+    /* scalacOptions ++= List("-Yrangepos", "-P:semanticdb:synthetics:on"), */
+    /* addCompilerPlugin(scalafixSemanticdb), */
 )
 
 lazy val bench = crossProject(JSPlatform, JVMPlatform)
@@ -31,7 +35,8 @@ lazy val bench = crossProject(JSPlatform, JVMPlatform)
     name := "bench",
     version := "master-SNAPSHOT",
     libraryDependencies ++= (
-      "io.monix" %%% "minitest" % "2.2.2" % "test" ::
+      "org.scala-lang.modules" %% "scala-collection-compat" % "2.1.1" ::
+      "io.monix" %%% "minitest" % "2.5.0" % "test" ::
       Nil
     ),
 
@@ -69,3 +74,5 @@ lazy val example = crossProject(JSPlatform, JVMPlatform).crossType(CrossType.Pur
 
 // ctrl+c does not quit
 cancelable in Global := true
+
+Global / onChangedBuildSource := ReloadOnSourceChanges

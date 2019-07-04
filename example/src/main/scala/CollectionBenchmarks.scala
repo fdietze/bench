@@ -214,7 +214,7 @@ object CollectionBenchmarks {
         }
         arr
       }
-    ),
+    )
   ))
 
   val flatMap = Comparison("FlatMap", Seq(
@@ -245,7 +245,7 @@ object CollectionBenchmarks {
       { (arr) =>
         mapNonNull[String, String](arr)(x => if (x.isEmpty) null else x + 10)
       }
-    ),
+    )
   ))
 
   val lookup = Comparison("Lookup", Seq(
