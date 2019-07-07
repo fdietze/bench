@@ -62,6 +62,10 @@ Execute command in `bench`:
 
 ## Garbage collector
 
+## invoke Garbage collector before running sample?
+- https://stackoverflow.com/questions/27321997/how-to-request-the-garbage-collector-in-node-js-to-run
+- https://stackoverflow.com/questions/1481178/how-to-force-garbage-collection-in-java
+
 ## jit configuration
 
 
