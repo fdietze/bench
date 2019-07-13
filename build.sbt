@@ -1,4 +1,4 @@
-// shadow sbt-scalajs' crossProject and CrossType until Scala.js 1.0.0 is released
+// shadow sbt-scalajs' crossProject and CrossType from Scala.js 0.6.x
 import sbtcrossproject.CrossPlugin.autoImport.{ crossProject, CrossType }
 
 val crossScalaVersionList = Seq("2.11.12", "2.12.8", "2.13.0")
@@ -23,54 +23,56 @@ val sharedSettings = Seq(
     /* "-Ywarn-nullary-unit" :: */
     Nil,
 
-    /* scalafixDependencies in ThisBuild += "org.scala-lang.modules" %% "scala-collection-migrations" % "2.0.0", */
-    /* scalacOptions ++= List("-Yrangepos", "-P:semanticdb:synthetics:on"), */
-    /* addCompilerPlugin(scalafixSemanticdb), */
+/* scalafixDependencies in ThisBuild += "org.scala-lang.modules" %% "scala-collection-migrations" % "2.0.0", */
+/* scalacOptions ++= List("-Yrangepos", "-P:semanticdb:synthetics:on"), */
+/* addCompilerPlugin(scalafixSemanticdb), */
 )
 
-lazy val bench = crossProject(JSPlatform, JVMPlatform)
-  .settings(sharedSettings)
-  .settings(
-    organization := "com.github.fdietze",
-    name := "bench",
-    version := "master-SNAPSHOT",
-    libraryDependencies ++= (
-      "org.scala-lang.modules" %% "scala-collection-compat" % "2.1.1" ::
-      "io.monix" %%% "minitest" % "2.5.0" % "test" ::
-      Nil
-    ),
+lazy val bench =
+  crossProject(JSPlatform, JVMPlatform)
+    .settings(sharedSettings)
+    .settings(
+      organization := "com.github.fdietze",
+      name := "bench",
+      version := "master-SNAPSHOT",
+      libraryDependencies ++= (
+        "org.scala-lang.modules" %% "scala-collection-compat" % "2.1.1" ::
+        "io.monix" %%% "minitest" % "2.5.0" % "test" ::
+        Nil
+      ),
 
-    testFrameworks += new TestFramework("minitest.runner.Framework"),
-    scalaJSModuleKind := ModuleKind.CommonJSModule,
+      testFrameworks += new TestFramework("minitest.runner.Framework"),
 
-    scalaJSStage in Test := FastOptStage, // not fullopt, because exceptions are removed by optimizations
-
-    initialCommands in console := """
+      initialCommands in console := """
     import bench._
     """,
-  )
-  .jvmSettings(
-    libraryDependencies += "org.scala-js" %% "scalajs-stubs" % scalaJSVersion % "provided"
-  )
-  .jsSettings(
-    scalacOptions ++= {
-      // enable production source-map support and link to correct commit hash on github:
-      git.gitHeadCommit.value.map { headCommit =>
-        val local = (baseDirectory in ThisBuild).value.toURI
-        val remote = s"https://raw.githubusercontent.com/fdietze/bench/${headCommit}/"
-        s"-P:scalajs:mapSourceURI:$local->$remote"
+    )
+    .jvmSettings(
+      libraryDependencies += "org.scala-js" %% "scalajs-stubs" % scalaJSVersion % "provided"
+    )
+    .jsSettings(
+      scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule)),
+      scalaJSStage in Test := FastOptStage, // not fullopt, because exceptions are removed by optimizations
+      scalacOptions ++= {
+        // enable production source-map support and link to correct commit hash on github:
+        git.gitHeadCommit.value.map { headCommit =>
+          val local = (baseDirectory in ThisBuild).value.toURI
+          val remote = s"https://raw.githubusercontent.com/fdietze/bench/${headCommit}/"
+          s"-P:scalajs:mapSourceURI:$local->$remote"
+        }
       }
-    }
-  )
+    )
 
-lazy val example = crossProject(JSPlatform, JVMPlatform).crossType(CrossType.Pure)
-  .dependsOn(bench)
-  .settings(sharedSettings)
-  .jsSettings(
-    scalaJSStage in Global := FullOptStage,
-    scalaJSUseMainModuleInitializer := true,
-    scalaJSModuleKind := ModuleKind.CommonJSModule
-  )
+lazy val example =
+  crossProject(JSPlatform, JVMPlatform)
+    .crossType(CrossType.Pure)
+    .dependsOn(bench)
+    .settings(sharedSettings)
+    .jsSettings(
+      scalaJSStage in Global := FullOptStage,
+      scalaJSUseMainModuleInitializer := true,
+      scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule)),
+    )
 
 // ctrl+c does not quit
 cancelable in Global := true
