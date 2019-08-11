@@ -1,7 +1,9 @@
 // shadow sbt-scalajs' crossProject and CrossType from Scala.js 0.6.x
 import sbtcrossproject.CrossPlugin.autoImport.{ crossProject, CrossType }
 
+
 val crossScalaVersionList = Seq("2.11.12", "2.12.8", "2.13.0")
+
 val sharedSettings = Seq(
   crossScalaVersions := crossScalaVersionList,
   scalaVersion := crossScalaVersionList.last,
