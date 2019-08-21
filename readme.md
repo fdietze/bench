@@ -74,3 +74,5 @@ Execute command in `bench`:
 ## nanoTime/performance.now vs TimeMillis
 
 ## no mean
+
+## https://llvm.org/docs/Benchmarking.html
