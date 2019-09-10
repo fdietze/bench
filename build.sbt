@@ -2,7 +2,7 @@
 import sbtcrossproject.CrossPlugin.autoImport.{ crossProject, CrossType }
 
 
-val crossScalaVersionList = Seq("2.11.12", "2.12.8", "2.13.0")
+val crossScalaVersionList = Seq("2.11.12", "2.12.9", "2.13.0")
 
 val sharedSettings = Seq(
   crossScalaVersions := crossScalaVersionList,
@@ -38,8 +38,8 @@ lazy val bench =
       name := "bench",
       version := "master-SNAPSHOT",
       libraryDependencies ++= (
-        "org.scala-lang.modules" %% "scala-collection-compat" % "2.1.1" ::
-        "io.monix" %%% "minitest" % "2.5.0" % "test" ::
+        "org.scala-lang.modules" %% "scala-collection-compat" % "2.1.2" ::
+        "io.monix" %%% "minitest" % "2.7.0" % "test" ::
         Nil
       ),
 
