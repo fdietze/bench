@@ -39,7 +39,7 @@ lazy val bench =
       version := "master-SNAPSHOT",
       libraryDependencies ++= (
         "org.scala-lang.modules" %% "scala-collection-compat" % "2.1.4" ::
-        "io.monix" %%% "minitest" % "2.7.0" % "test" ::
+        "io.monix" %%% "minitest" % "2.8.2" % "test" ::
         Nil
       ),
 
