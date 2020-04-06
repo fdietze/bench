@@ -3,13 +3,13 @@
 jdk:
   - oraclejdk8
 before_install:
-   - wget http://central.maven.org/maven2/org/scala-sbt/sbt-launch/1.3.0/sbt-launch-1.3.0.jar
+   - wget http://central.maven.org/maven2/org/scala-sbt/sbt-launch/1.3.9/sbt-launch-1.3.9.jar
 install:
-   - java -jar sbt-launch-1.3.0.jar +publishM2
-   - SCALAJS_VERSION=0.6.28 java -jar sbt-launch-1.3.0.jar ++2.13.0 publishM2
-   - SCALAJS_VERSION=0.6.28 java -jar sbt-launch-1.3.0.jar ++2.12.10 publishM2
-   - SCALAJS_VERSION=0.6.28 java -jar sbt-launch-1.3.0.jar ++2.11.12 publishM2
-   - SCALAJS_VERSION=1.0.0-M8 java -jar sbt-launch-1.3.0.jar ++2.13.0 publishM2
-   - SCALAJS_VERSION=1.0.0-M8 java -jar sbt-launch-1.3.0.jar ++2.12.10 publishM2
-   - SCALAJS_VERSION=1.0.0-M8 java -jar sbt-launch-1.3.0.jar ++2.11.12 publishM2
+   - java -jar sbt-launch-1.3.9.jar +publishM2
+   - SCALAJS_VERSION=0.6.32 java -jar sbt-launch-1.3.9.jar ++2.13.0 publishM2
+   - SCALAJS_VERSION=0.6.32 java -jar sbt-launch-1.3.9.jar ++2.12.10 publishM2
+   - SCALAJS_VERSION=0.6.32 java -jar sbt-launch-1.3.9.jar ++2.11.12 publishM2
+   - SCALAJS_VERSION=1.0.1 java -jar sbt-launch-1.3.9.jar ++2.13.0 publishM2
+   - SCALAJS_VERSION=1.0.1 java -jar sbt-launch-1.3.9.jar ++2.12.10 publishM2
+   - SCALAJS_VERSION=1.0.1 java -jar sbt-launch-1.3.9.jar ++2.11.12 publishM2
 
