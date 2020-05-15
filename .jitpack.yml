@@ -9,7 +9,7 @@ install:
    - SCALAJS_VERSION=0.6.32 java -jar sbt-launch-1.3.9.jar ++2.13.0 publishM2
    - SCALAJS_VERSION=0.6.32 java -jar sbt-launch-1.3.9.jar ++2.12.10 publishM2
    - SCALAJS_VERSION=0.6.32 java -jar sbt-launch-1.3.9.jar ++2.11.12 publishM2
-   - SCALAJS_VERSION=1.0.1 java -jar sbt-launch-1.3.9.jar ++2.13.0 publishM2
-   - SCALAJS_VERSION=1.0.1 java -jar sbt-launch-1.3.9.jar ++2.12.10 publishM2
-   - SCALAJS_VERSION=1.0.1 java -jar sbt-launch-1.3.9.jar ++2.11.12 publishM2
+   - SCALAJS_VERSION=1.1.0 java -jar sbt-launch-1.3.9.jar ++2.13.0 publishM2
+   - SCALAJS_VERSION=1.1.0 java -jar sbt-launch-1.3.9.jar ++2.12.10 publishM2
+   - SCALAJS_VERSION=1.1.0 java -jar sbt-launch-1.3.9.jar ++2.11.12 publishM2
 
