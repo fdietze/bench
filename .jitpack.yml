@@ -1,15 +1,4 @@
-# workaround for https://github.com/jitpack/jitpack.io/issues/1887
-
-jdk:
-  - oraclejdk8
-before_install:
-   - wget https://repo.maven.apache.org/maven2/org/scala-sbt/sbt-launch/1.3.9/sbt-launch-1.3.9.jar
 install:
-   - java -jar sbt-launch-1.3.9.jar +publishM2
-   - SCALAJS_VERSION=0.6.32 java -jar sbt-launch-1.3.9.jar ++2.13.0 publishM2
-   - SCALAJS_VERSION=0.6.32 java -jar sbt-launch-1.3.9.jar ++2.12.10 publishM2
-   - SCALAJS_VERSION=0.6.32 java -jar sbt-launch-1.3.9.jar ++2.11.12 publishM2
-   - SCALAJS_VERSION=1.1.1 java -jar sbt-launch-1.3.9.jar ++2.13.0 publishM2
-   - SCALAJS_VERSION=1.1.1 java -jar sbt-launch-1.3.9.jar ++2.12.10 publishM2
-   - SCALAJS_VERSION=1.1.1 java -jar sbt-launch-1.3.9.jar ++2.11.12 publishM2
+   - SCALAJS_VERSION=0.6.33 sbt +bench/publishM2
+   - SCALAJS_VERSION=1.1.1  sbt +bench/publishM2
 

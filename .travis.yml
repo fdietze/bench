@@ -11,7 +11,7 @@ jdk:
 - openjdk11
 
 env:
-  - SCALAJS_VERSION=0.6.32
+  - SCALAJS_VERSION=0.6.33
   - SCALAJS_VERSION=1.1.1 # blocked by https://github.com/monix/minitest/issues/43
 
 script:
