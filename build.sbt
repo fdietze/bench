@@ -2,7 +2,7 @@
 import sbtcrossproject.CrossPlugin.autoImport.{ crossProject, CrossType }
 
 
-val crossScalaVersionList = Seq("2.11.12", "2.12.12", "2.13.3")
+val crossScalaVersionList = Seq("2.11.12", "2.12.14", "2.13.3")
 
 val sharedSettings = Seq(
   crossScalaVersions := crossScalaVersionList,
