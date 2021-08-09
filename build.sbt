@@ -50,7 +50,7 @@ lazy val bench =
     """,
     )
     .jvmSettings(
-      libraryDependencies += "org.scala-js" %% "scalajs-stubs" % "1.0.0" % "provided"
+      libraryDependencies += "org.scala-js" %% "scalajs-stubs" % "1.1.0" % "provided"
     )
     .jsSettings(
       scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule)),
