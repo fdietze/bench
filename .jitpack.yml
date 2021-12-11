@@ -1,4 +1,4 @@
 install:
    - SCALAJS_VERSION=0.6.33 sbt +publishM2
-   - SCALAJS_VERSION=1.3.1  sbt +publishM2
+   - SCALAJS_VERSION=1.8.0  sbt +publishM2
 
