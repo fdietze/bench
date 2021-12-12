@@ -1,10 +1,9 @@
-// https://www.scala-js.org/news/2018/02/01/announcing-scalajs-1.0.0-M3/#cross-building-for-scalajs-06x-and-1x
-val scalaJSVersion = Option(System.getenv("SCALAJS_VERSION")).getOrElse("1.3.1")
+addSbtPlugin("org.portable-scala"                % "sbt-scalajs-crossproject"      % "1.0.0")
+addSbtPlugin("org.portable-scala"                % "sbt-scala-native-crossproject" % "1.0.0")
+addSbtPlugin("org.scala-js"                      % "sbt-scalajs"                   % "1.8.0")
+addSbtPlugin("org.scala-native"                  % "sbt-scala-native"              % "0.3.9")
+addSbtPlugin("com.thoughtworks.sbt-scala-js-map" % "sbt-scala-js-map"              % "4.1.1")
 
-// https://github.com/portable-scala/sbt-crossproject
-addSbtPlugin("org.portable-scala" % "sbt-scalajs-crossproject" % "1.1.0")
-addSbtPlugin("org.portable-scala" % "sbt-scala-native-crossproject" % "1.1.0")
-addSbtPlugin("org.scala-js" % "sbt-scalajs" % scalaJSVersion)
-addSbtPlugin("org.scala-native" % "sbt-scala-native" % "0.3.9")
+addSbtPlugin("io.github.davidgregory084" % "sbt-tpolecat" % "0.1.20")
 
 addSbtPlugin("com.typesafe.sbt" % "sbt-git" % "1.0.0")

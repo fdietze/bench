@@ -18,18 +18,18 @@ package object PlatformNow {
     import js.DynamicImplicits.truthValue
 
     if (js.typeOf(global.performance) != "undefined") {
-      if (global.performance.now) {
-        () => global.performance.now().asInstanceOf[scala.Double]
-      } else if (global.performance.webkitNow) {
-        () => global.performance.webkitNow().asInstanceOf[scala.Double]
-      } else {
-        () => new js.Date().getTime()
+      if (global.performance.now) { () =>
+        global.performance.now().asInstanceOf[scala.Double]
+      } else if (global.performance.webkitNow) { () =>
+        global.performance.webkitNow().asInstanceOf[scala.Double]
+      } else { () =>
+        new js.Date().getTime()
       }
-    } else if(NodejsPerformance.asInstanceOf[js.UndefOr[NodejsPerformance.type]].isDefined) {
-      () => NodejsPerformance.now()
+    } else if (NodejsPerformance.asInstanceOf[js.UndefOr[NodejsPerformance.type]].isDefined) { () =>
+      NodejsPerformance.now()
 
-    } else {
-      () => new js.Date().getTime()
+    } else { () =>
+      new js.Date().getTime()
     }
   }
 
