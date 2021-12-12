@@ -1,33 +1,12 @@
-// shadow sbt-scalajs' crossProject and CrossType from Scala.js 0.6.x
-import sbtcrossproject.CrossPlugin.autoImport.{ crossProject, CrossType }
+Global / onChangedBuildSource := ReloadOnSourceChanges
 
-
-val crossScalaVersionList = Seq("2.11.12", "2.12.12", "2.13.3")
+// ctrl+c does not quit
+cancelable in Global := true
 
 val sharedSettings = Seq(
-  crossScalaVersions := crossScalaVersionList,
-  scalaVersion := crossScalaVersionList.last,
-  scalacOptions ++=
-    "-encoding" :: "UTF-8" ::
-    "-unchecked" ::
-    "-deprecation" ::
-    "-explaintypes" ::
-    "-feature" ::
-    "-language:_" ::
-    "-Xcheckinit" ::
-    /* "-Xfuture" :: */
-    /* "-Xlint:-unused" :: */
-    /* "-Ypartial-unification" :: */
-    /* "-Yno-adapted-args" :: */
-    /* "-Ywarn-infer-any" :: */
-    "-Ywarn-value-discard" ::
-    /* "-Ywarn-nullary-override" :: */
-    /* "-Ywarn-nullary-unit" :: */
-    Nil,
-
-/* scalafixDependencies in ThisBuild += "org.scala-lang.modules" %% "scala-collection-migrations" % "2.0.0", */
-/* scalacOptions ++= List("-Yrangepos", "-P:semanticdb:synthetics:on"), */
-/* addCompilerPlugin(scalafixSemanticdb), */
+  crossScalaVersions := Seq("2.12.15", "2.13.7", "3.1.0"),
+  scalaVersion := crossScalaVersions.value.last,
+  scalacOptions --= Seq("-Xfatal-warnings"), // overwrite sbt-tpolecat setting
 )
 
 lazy val bench =
@@ -38,31 +17,23 @@ lazy val bench =
       name := "bench",
       version := "master-SNAPSHOT",
       libraryDependencies ++= (
-        "org.scala-lang.modules" %% "scala-collection-compat" % "2.3.2" ::
-        "io.monix" %%% "minitest" % "2.8.2" % "test" ::
+        "org.scala-lang.modules" %% "scala-collection-compat" % "2.6.0" ::
+        "io.monix" %%% "minitest" % "2.9.6" % "test" ::
         Nil
       ),
 
       testFrameworks += new TestFramework("minitest.runner.Framework"),
 
-      initialCommands in console := """
+      console/initialCommands := """
     import bench._
     """,
     )
     .jvmSettings(
-      libraryDependencies += "org.scala-js" %% "scalajs-stubs" % "1.0.0" % "provided"
+      libraryDependencies += "org.scala-js" %% "scalajs-stubs" % "1.1.0" % "provided"
     )
     .jsSettings(
       scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule)),
-      scalaJSStage in Test := FastOptStage, // not fullopt, because exceptions are removed by optimizations
-      scalacOptions ++= {
-        // enable production source-map support and link to correct commit hash on github:
-        git.gitHeadCommit.value.map { headCommit =>
-          val local = (baseDirectory in ThisBuild).value.toURI
-          val remote = s"https://raw.githubusercontent.com/fdietze/bench/${headCommit}/"
-          s"-P:scalajs:mapSourceURI:$local->$remote"
-        }
-      }
+      Test/scalaJSStage := FastOptStage, // not fullopt, because exceptions are removed by optimizations
     )
 
 lazy val example =
@@ -75,8 +46,3 @@ lazy val example =
       scalaJSUseMainModuleInitializer := true,
       scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule)),
     )
-
-// ctrl+c does not quit
-cancelable in Global := true
-
-Global / onChangedBuildSource := ReloadOnSourceChanges

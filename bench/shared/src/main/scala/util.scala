@@ -53,7 +53,7 @@ package object util {
       dataSizes.map { dataSize =>
         // println(s"dataSize: $dataSize")
         val avgDuration = benchmark.runFor(dataSize, minDuration = seriesDuration / dataSizes.length)
-        dataSize -> avgDuration.max(1 nanoseconds)
+        dataSize -> avgDuration.max(1.nanoseconds)
       }
     }
     // println("warmup...")
