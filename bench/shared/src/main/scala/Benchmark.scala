@@ -11,10 +11,9 @@ trait BenchmarkLike[T] {
   protected def countWarning = 10
 }
 
-
 case class BenchmarkWithoutInit(name: String, code: (Int) => Any) extends BenchmarkLike[Unit] {
   def runFor(dataSize: Int, minDuration: Duration): Duration = {
-    val (codeDuration, count) = repeatCodeFor(minDuration) { code(dataSize) }
+    val (codeDuration, count)     = repeatCodeFor(minDuration) { code(dataSize) }
     if (count <= countWarning) println(s"WARNING: only ran $count times for size $dataSize. Give me more time.")
     val avgCodeDuration: Duration = codeDuration / count
     avgCodeDuration
@@ -23,10 +22,10 @@ case class BenchmarkWithoutInit(name: String, code: (Int) => Any) extends Benchm
 
 case class BenchmarkImmutableInit[T](name: String, init: Int => T, code: (T) => Any) extends BenchmarkLike[T] {
   def runFor(dataSize: Int, minDuration: Duration): Duration = {
-    val initData = init(dataSize)
+    val initData              = init(dataSize)
     val (codeDuration, count) = repeatCodeFor(minDuration) { code(initData) }
     if (count <= countWarning) println(s"WARNING: only ran $count times for size $dataSize. Give me more time.")
-    val avgCode: Duration = codeDuration / count
+    val avgCode: Duration     = codeDuration / count
     avgCode
   }
 }
@@ -37,15 +36,16 @@ case class Benchmark[T](name: String, init: Int => T, code: (T) => Any) extends 
     val (onlyInitDuration, onlyInitCount) = repeatCodeFor(minDuration / 2) {
       init(dataSize)
     }
-    val avgOnlyInit: Duration = onlyInitDuration / onlyInitCount
+    val avgOnlyInit: Duration             = onlyInitDuration / onlyInitCount
 
     val (initAndCodeDuration, initAndCodeCount) = repeatCodeFor(minDuration / 2) {
       code(init(dataSize))
     }
-    if (initAndCodeCount <= countWarning) println(s"WARNING: only ran $initAndCodeCount times for size $dataSize. Give me more time.")
+    if (initAndCodeCount <= countWarning)
+      println(s"WARNING: only ran $initAndCodeCount times for size $dataSize. Give me more time.")
 
     val avgInitAndCode: Duration = initAndCodeDuration / initAndCodeCount
-    val avgOnlyCode = avgInitAndCode - avgOnlyInit
+    val avgOnlyCode              = avgInitAndCode - avgOnlyInit
     // println(s"avgOnlyInit:    $avgOnlyInit")
     // println(s"avgInitAndCode: $avgInitAndCode")
     // println(s"avgOnlyCode:    $avgOnlyCode")
