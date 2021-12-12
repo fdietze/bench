@@ -3,11 +3,11 @@ package bench
 import scala.concurrent.duration._
 
 package object util {
-  @inline def rInt: Int = scala.util.Random.nextInt
+  @inline def rInt: Int       = scala.util.Random.nextInt
   @inline def rDouble: Double = scala.util.Random.nextDouble
   @inline def repeatCode[T](n: Long)(code: => T): T = {
     var last: T = code
-    var i = 1
+    var i       = 1
     while (i < n) {
       last = code
       i += 1
@@ -31,23 +31,28 @@ package object util {
   @inline def now = PlatformNow.nanoTime
 
   @inline def repeatCodeFor[T](minDuration: Duration)(code: => T): (Duration, Long) = {
-    val durationNs = minDuration.toNanos
+    val durationNs  = minDuration.toNanos
     var count: Long = 0
 
-    val start = now
+    val start          = now
     @inline def passed = now - start
 
     while (passed < durationNs) {
       code
       count += 1
     }
-    val end = now
+    val end   = now
     val total = end - start
     (Duration.fromNanos(total), count)
   }
 
   val defaultWarmup = 2
-  def benchmarkSeries(benchmark: BenchmarkLike[_], dataSizes: Seq[Int], duration: Duration, warmup: Int = defaultWarmup): Seq[(Int, Duration)] = {
+  def benchmarkSeries(
+      benchmark: BenchmarkLike[_],
+      dataSizes: Seq[Int],
+      duration: Duration,
+      warmup: Int = defaultWarmup,
+  ): Seq[(Int, Duration)] = {
     val seriesDuration = duration / (warmup + 1) // keep only one result
     def runSeries = {
       dataSizes.map { dataSize =>
@@ -63,18 +68,25 @@ package object util {
   }
 
   val numPad = 15
-  def runComparison(comparison: Comparison, sizes: Seq[Int], duration: Duration, warmup: Int = defaultWarmup): (String, Seq[(String, Seq[(Int, Duration)])]) = {
-    val namePad = comparison.benchmarks.map(_.name.length).max
+  def runComparison(
+      comparison: Comparison,
+      sizes: Seq[Int],
+      duration: Duration,
+      warmup: Int = defaultWarmup,
+  ): (String, Seq[(String, Seq[(Int, Duration)])]) = {
+    val namePad              = comparison.benchmarks.map(_.name.length).max
     val durationForSingleRun = (duration / comparison.benchmarks.size / (warmup + 1)) / sizes.size
     println("Comparison Benchmark:  " + comparison.name)
     println("Duration total:        " + duration.toMillis + "ms")
     println("Duration per run:      " + durationForSingleRun.toMillis + "ms")
     println("(result durations in nanoseconds)")
     println(s"${" " * namePad}${sizes.map(s => s"%${numPad}d" format s).mkString}")
-    val benchmarkDuration = duration / comparison.benchmarks.size
-    val result = comparison.name -> comparison.benchmarks.map{ benchmark =>
+    val benchmarkDuration    = duration / comparison.benchmarks.size
+    val result               = comparison.name -> comparison.benchmarks.map { benchmark =>
       val seriesResult = benchmarkSeries(benchmark, sizes, benchmarkDuration, warmup)
-      println(benchmark.name.replace(" ", "_").padTo(namePad, " ").mkString + seriesResult.map{ case (_, duration) => s"%${numPad}d" format duration.toNanos }.mkString)
+      println(benchmark.name.replace(" ", "_").padTo(namePad, " ").mkString + seriesResult.map { case (_, duration) =>
+        s"%${numPad}d" format duration.toNanos
+      }.mkString)
       benchmark.name -> seriesResult
     }
     println()

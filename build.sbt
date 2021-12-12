@@ -18,22 +18,20 @@ lazy val bench =
       version := "master-SNAPSHOT",
       libraryDependencies ++= (
         "org.scala-lang.modules" %% "scala-collection-compat" % "2.6.0" ::
-        "io.monix" %%% "minitest" % "2.9.6" % "test" ::
-        Nil
+          "io.monix"            %%% "minitest"                % "2.9.6" % "test" ::
+          Nil
       ),
-
       testFrameworks += new TestFramework("minitest.runner.Framework"),
-
-      console/initialCommands := """
+      console / initialCommands := """
     import bench._
     """,
     )
     .jvmSettings(
-      libraryDependencies += "org.scala-js" %% "scalajs-stubs" % "1.1.0" % "provided"
+      libraryDependencies += "org.scala-js" %% "scalajs-stubs" % "1.1.0" % "provided",
     )
     .jsSettings(
       scalaJSLinkerConfig ~= (_.withModuleKind(ModuleKind.CommonJSModule)),
-      Test/scalaJSStage := FastOptStage, // not fullopt, because exceptions are removed by optimizations
+      Test / scalaJSStage := FastOptStage, // not fullopt, because exceptions are removed by optimizations
     )
 
 lazy val example =
