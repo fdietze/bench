@@ -14,7 +14,7 @@ package object PlatformNow {
   // https://github.com/scala-js/scala-js/issues/3623
 
   private[this] val getHighPrecisionTime: js.Function0[scala.Double] = {
-    //From https://github.com/scala-js/scala-js/blob/master/javalanglib/src/main/scala/java/lang/System.scala#L42
+    // From https://github.com/scala-js/scala-js/blob/master/javalanglib/src/main/scala/java/lang/System.scala#L42
     import js.DynamicImplicits.truthValue
 
     if (js.typeOf(global.performance) != "undefined") {

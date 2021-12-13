@@ -3,8 +3,8 @@ package bench
 import scala.concurrent.duration._
 
 package object util {
-  @inline def rInt: Int       = scala.util.Random.nextInt
-  @inline def rDouble: Double = scala.util.Random.nextDouble
+  @inline def rInt: Int                             = scala.util.Random.nextInt
+  @inline def rDouble: Double                       = scala.util.Random.nextDouble
   @inline def repeatCode[T](n: Long)(code: => T): T = {
     var last: T = code
     var i       = 1
@@ -54,7 +54,7 @@ package object util {
       warmup: Int = defaultWarmup,
   ): Seq[(Int, Duration)] = {
     val seriesDuration = duration / (warmup + 1) // keep only one result
-    def runSeries = {
+    def runSeries      = {
       dataSizes.map { dataSize =>
         // println(s"dataSize: $dataSize")
         val avgDuration = benchmark.runFor(dataSize, minDuration = seriesDuration / dataSizes.length)

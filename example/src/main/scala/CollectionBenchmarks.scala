@@ -15,7 +15,7 @@ object CollectionBenchmarks {
     }
     res.result()
   }
-  @inline def mapNonNull[T, R <: AnyRef: ClassTag](arr: Array[T])(f: T => R): Array[R] = {
+  @inline def mapNonNull[T, R <: AnyRef: ClassTag](arr: Array[T])(f: T => R): Array[R]  = {
     val res = Array.newBuilder[R]
     arr.foreach { t =>
       val r = f(t)
