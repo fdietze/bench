@@ -16,10 +16,9 @@ lazy val bench =
       organization := "com.github.fdietze",
       name := "bench",
       version := "master-SNAPSHOT",
-      libraryDependencies ++= (
-        "org.scala-lang.modules" %% "scala-collection-compat" % "2.6.0" ::
-          "io.monix"            %%% "minitest"                % "2.9.6" % "test" ::
-          Nil
+      libraryDependencies ++= Seq(
+        "org.scala-lang.modules" %% "scala-collection-compat" % "2.6.0",
+        "io.monix"            %%% "minitest"                % "2.9.6" % "test",
       ),
       testFrameworks += new TestFramework("minitest.runner.Framework"),
       console / initialCommands := """
