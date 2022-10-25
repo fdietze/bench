@@ -4,7 +4,7 @@ Global / onChangedBuildSource := ReloadOnSourceChanges
 cancelable in Global := true
 
 val sharedSettings = Seq(
-  crossScalaVersions := Seq("2.12.17", "2.13.8", "3.1.3"),
+  crossScalaVersions := Seq("2.12.17", "2.13.10", "3.1.3"),
   scalaVersion       := crossScalaVersions.value.last,
   scalacOptions --= Seq("-Xfatal-warnings"), // overwrite sbt-tpolecat setting
 )
